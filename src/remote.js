@@ -214,6 +214,7 @@ const defaults = {
   },
   timestamp: () => new Date().toISOString(),
   format: plain,
+  formatRequest: (logs) => `{"logs":[${logs.join(",")}]}`,
 };
 
 const remote = {
