@@ -1,7 +1,7 @@
 const win = window;
 
 if (!win) {
-  throw new Error('Plugin for browser usage only');
+  throw new Error("Plugin for browser usage only");
 }
 
 let CIRCULAR_ERROR_MESSAGE;
@@ -22,7 +22,7 @@ function tryStringify(arg) {
       }
     }
     if (error.message === CIRCULAR_ERROR_MESSAGE) {
-      return '[Circular]';
+      return "[Circular]";
     }
     throw error;
   }
@@ -35,11 +35,11 @@ function getConstructorName(obj) {
 
   // https://github.com/nodejs/node/blob/master/lib/internal/util.js
   while (obj) {
-    const descriptor = Object.getOwnPropertyDescriptor(obj, 'constructor');
+    const descriptor = Object.getOwnPropertyDescriptor(obj, "constructor");
     if (
-      descriptor !== undefined
-      && typeof descriptor.value === 'function'
-      && descriptor.value.name !== ''
+      descriptor !== undefined &&
+      typeof descriptor.value === "function" &&
+      descriptor.value.name !== ""
     ) {
       return descriptor.value.name;
     }
@@ -47,53 +47,56 @@ function getConstructorName(obj) {
     obj = Object.getPrototypeOf(obj);
   }
 
-  return '';
+  return "";
 }
 
 function interpolate(array) {
-  let result = '';
+  let result = "";
   let index = 0;
 
-  if (array.length > 1 && typeof array[0] === 'string') {
-    result = array[0].replace(/(%?)(%([sdjo]))/g, (match, escaped, ptn, flag) => {
-      if (!escaped) {
-        index += 1;
-        const arg = array[index];
-        let a = '';
-        switch (flag) {
-          case 's':
-            a += arg;
-            break;
-          case 'd':
-            a += +arg;
-            break;
-          case 'j':
-            a = tryStringify(arg);
-            break;
-          case 'o': {
-            let obj = tryStringify(arg);
-            if (obj[0] !== '{' && obj[0] !== '[') {
-              obj = `<${obj}>`;
+  if (array.length > 1 && typeof array[0] === "string") {
+    result = array[0].replace(
+      /(%?)(%([sdjo]))/g,
+      (match, escaped, ptn, flag) => {
+        if (!escaped) {
+          index += 1;
+          const arg = array[index];
+          let a = "";
+          switch (flag) {
+            case "s":
+              a += arg;
+              break;
+            case "d":
+              a += +arg;
+              break;
+            case "j":
+              a = tryStringify(arg);
+              break;
+            case "o": {
+              let obj = tryStringify(arg);
+              if (obj[0] !== "{" && obj[0] !== "[") {
+                obj = `<${obj}>`;
+              }
+              a = getConstructorName(arg) + obj;
+              break;
             }
-            a = getConstructorName(arg) + obj;
-            break;
           }
+          return a;
         }
-        return a;
+        return match;
       }
-      return match;
-    });
+    );
 
     // update escaped %% values
-    result = result.replace(/%{2,2}/g, '%');
+    result = result.replace(/%{2,2}/g, "%");
 
     index += 1;
   }
 
   // arguments remaining after formatting
   if (array.length > index) {
-    if (result) result += ' ';
-    result += array.slice(index).join(' ');
+    if (result) result += " ";
+    result += array.slice(index).join(" ");
   }
 
   return result;
@@ -108,9 +111,10 @@ function assign() {
     const source = Object(arguments[s]);
     for (const key in source) {
       if (hasOwnProperty.call(source, key)) {
-        target[key] = typeof source[key] === 'object' && !Array.isArray(source[key])
-          ? assign(target[key], source[key])
-          : source[key];
+        target[key] =
+          typeof source[key] === "object" && !Array.isArray(source[key])
+            ? assign(target[key], source[key])
+            : source[key];
       }
     }
   }
@@ -149,7 +153,7 @@ function Queue(capacity) {
 
   this.confirm = () => {
     sent = [];
-    this.content = '';
+    this.content = "";
   };
 
   this.fail = () => {
@@ -172,8 +176,8 @@ let pluginFactory;
 
 function plain(log) {
   return `[${log.timestamp}] ${log.level.label.toUpperCase()}${
-    log.logger ? ` (${log.logger})` : ''
-  }: ${log.message}${log.stacktrace ? `\n${log.stacktrace}` : ''}`;
+    log.logger ? ` (${log.logger})` : ""
+  }: ${log.message}${log.stacktrace ? `\n${log.stacktrace}` : ""}`;
 }
 
 function json(log) {
@@ -189,14 +193,14 @@ const save = win.remote;
 
 const defaultCapacity = 500;
 const defaults = {
-  url: '/logger',
-  method: 'POST',
+  url: "/logger",
+  method: "POST",
   headers: {},
-  token: '',
+  token: "",
   onUnauthorized: () => {},
   timeout: 0,
   interval: 1000,
-  level: 'trace',
+  level: "trace",
   backoff: {
     multiplier: 2,
     jitter: 0.1,
@@ -204,7 +208,7 @@ const defaults = {
   },
   capacity: 0,
   stacktrace: {
-    levels: ['trace', 'warn', 'error'],
+    levels: ["trace", "warn", "error"],
     depth: 3,
     excess: 0,
   },
@@ -223,11 +227,11 @@ const remote = {
   json,
   apply(logger, options) {
     if (!logger || !logger.getLogger) {
-      throw new TypeError('Argument is not a root loglevel object');
+      throw new TypeError("Argument is not a root loglevel object");
     }
 
     if (loglevel) {
-      throw new Error('You can assign a plugin only one time');
+      throw new Error("You can assign a plugin only one time");
     }
 
     if (!win.XMLHttpRequest) return logger;
@@ -240,14 +244,15 @@ const remote = {
 
     const { backoff } = config;
 
-    const backoffFunc = typeof backoff === 'object'
-      ? (duration) => {
-        let next = duration * backoff.multiplier;
-        if (next > backoff.limit) next = backoff.limit;
-        next += next * backoff.jitter * Math.random();
-        return next;
-      }
-      : backoff;
+    const backoffFunc =
+      typeof backoff === "object"
+        ? (duration) => {
+            let next = duration * backoff.multiplier;
+            if (next > backoff.limit) next = backoff.limit;
+            next += next * backoff.jitter * Math.random();
+            return next;
+          }
+        : backoff;
 
     let { interval } = config;
     let contentType;
@@ -269,16 +274,18 @@ const remote = {
 
         const logs = queue.send();
 
-        queue.content = isJSON ? `{"logs":[${logs.join(',')}]}` : logs.join('\n');
+        queue.content = isJSON
+          ? `{"logs":[${logs.join(",")}]}`
+          : logs.join("\n");
       }
 
       isSending = true;
 
       const xhr = new win.XMLHttpRequest();
       xhr.open(config.method, config.url, true);
-      xhr.setRequestHeader('Content-Type', contentType);
+      xhr.setRequestHeader("Content-Type", contentType);
       if (config.token) {
-        xhr.setRequestHeader('Authorization', `Bearer ${config.token}`);
+        xhr.setRequestHeader("Authorization", `Bearer ${config.token}`);
       }
 
       const { headers } = config;
@@ -322,7 +329,7 @@ const remote = {
         isSending = false;
         win.clearTimeout(timeout);
 
-        if (xhr.status === 200) {
+        if (xhr.status >= 200 && xhr.status < 300) {
           // eslint-disable-next-line prefer-destructuring
           interval = config.interval;
           queue.confirm();
@@ -342,10 +349,15 @@ const remote = {
 
     originalFactory = logger.methodFactory;
 
-    pluginFactory = function remoteMethodFactory(methodName, logLevel, loggerName) {
+    pluginFactory = function remoteMethodFactory(
+      methodName,
+      logLevel,
+      loggerName
+    ) {
       const rawMethod = originalFactory(methodName, logLevel, loggerName);
-      const needStack = hasStacktraceSupport
-        && config.stacktrace.levels.some(level => level === methodName);
+      const needStack =
+        hasStacktraceSupport &&
+        config.stacktrace.levels.some((level) => level === methodName);
       const levelVal = loglevel.levels[methodName.toUpperCase()];
       const needLog = levelVal >= loglevel.levels[config.level.toUpperCase()];
 
@@ -353,17 +365,17 @@ const remote = {
         if (needLog) {
           const timestamp = config.timestamp();
 
-          let stacktrace = needStack ? getStacktrace() : '';
+          let stacktrace = needStack ? getStacktrace() : "";
           if (stacktrace) {
-            const lines = stacktrace.split('\n');
+            const lines = stacktrace.split("\n");
             lines.splice(0, config.stacktrace.excess + 3);
             const { depth } = config.stacktrace;
             if (depth && lines.length !== depth + 1) {
               const shrink = lines.splice(0, depth);
-              stacktrace = shrink.join('\n');
+              stacktrace = shrink.join("\n");
               if (lines.length) stacktrace += `\n    and ${lines.length} more`;
             } else {
-              stacktrace = lines.join('\n');
+              stacktrace = lines.join("\n");
             }
           }
 
@@ -373,23 +385,23 @@ const remote = {
               label: methodName,
               value: levelVal,
             },
-            logger: loggerName || '',
+            logger: loggerName || "",
             timestamp,
             stacktrace,
           });
 
           if (isJSON === undefined) {
-            isJSON = typeof log !== 'string';
-            contentType = isJSON ? 'application/json' : 'text/plain';
+            isJSON = typeof log !== "string";
+            contentType = isJSON ? "application/json" : "text/plain";
           }
 
-          let content = '';
+          let content = "";
           if (isJSON) {
             try {
               content += JSON.stringify(log);
             } catch (error) {
               rawMethod(...args);
-              loglevel.getLogger('logger').error(error);
+              loglevel.getLogger("logger").error(error);
               return;
             }
           } else {
@@ -420,7 +432,9 @@ const remote = {
     }
 
     if (pluginFactory !== loglevel.methodFactory) {
-      throw new Error("You can't disable a plugin after appling another plugin");
+      throw new Error(
+        "You can't disable a plugin after appling another plugin"
+      );
     }
 
     loglevel.methodFactory = originalFactory;
